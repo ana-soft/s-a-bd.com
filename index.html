@@ -606,15 +606,16 @@ assignment:i=>{
 },
 gallery:()=>head('Gallery','Project Gallery','Photographs and architectural visualizations from the SAL project archive.')+`<section><div class="w gal">${GALLERY.map(([id,title])=>`<button class="gi rv" onclick="lb('${id}')">${pic(id,title)}<span>${title}</span></button>`).join('')}</div></section>`+visit,
 contact:()=>head('Contact','Start a <em>project.</em>','Tell us the site, the intended use and the services you need.')+`<section><div class="w two"><div class="rv"><h2 style="font-size:clamp(30px,3.4vw,44px);margin-bottom:26px">Contact information</h2>${info}</div><div class="rv"><form class="form" id="ef" action="https://formsubmit.co/${ENQUIRY_RECIPIENT}" method="post" onsubmit="return validateEnquiry(event)">
-<input type="hidden" name="_subject" value="New website enquiry | SAL">
+<input type="hidden" name="_subject" value="New SAL enquiry">
+<input type="hidden" name="Enquiry reference">
 <input type="hidden" name="_template" value="table">
 <input type="text" name="_honey" tabindex="-1" autocomplete="off" hidden>
-<label>Your name<input name="name" autocomplete="name" required minlength="2" maxlength="120"></label>
+<label>Your name<input name="Full name" autocomplete="name" required minlength="2" maxlength="120"></label>
 <label>Email<input type="email" name="email" autocomplete="email" maxlength="254" aria-describedby="contact-hint"></label>
-<label>Phone<input type="tel" name="phone" autocomplete="tel" maxlength="40" aria-describedby="contact-hint"></label>
+<label>Phone<input type="tel" name="Phone" autocomplete="tel" maxlength="40" aria-describedby="contact-hint"></label>
 <p class="form-hint" id="contact-hint">Provide an email address or phone number so we can reply.</p>
-<label>Service needed<select name="service"><option value="">Select a service (optional)</option>${S.map(s=>`<option>${s[0]}</option>`).join('')}</select></label>
-<label>Project details<textarea name="message" rows="5" placeholder="Site location and intended use" required minlength="10" maxlength="5000"></textarea></label>
+<label>Service needed<select name="Service needed"><option value="">Select a service (optional)</option>${S.map(s=>`<option>${s[0]}</option>`).join('')}</select></label>
+<label>Project details<textarea name="Project details" rows="5" placeholder="Site location and intended use" required minlength="10" maxlength="5000"></textarea></label>
 <button type="submit" class="cta" style="border:0;cursor:pointer;font:inherit">Send enquiry</button>
 <p class="form-hint">Your contact details will be used to respond to your enquiry. This form is processed by FormSubmit.</p>
 <p id="fm" role="status"></p></form></div></div></section>${find}`
@@ -643,9 +644,9 @@ function validateEnquiry(event){
  const form = event.currentTarget;
  const fields = form.elements;
  const email = fields.namedItem('email').value.trim();
- const phone = fields.namedItem('phone').value.trim();
- const name = fields.namedItem('name').value.trim();
- const message = fields.namedItem('message').value.trim();
+ const phone = fields.namedItem('Phone').value.trim();
+ const name = fields.namedItem('Full name').value.trim();
+ const message = fields.namedItem('Project details').value.trim();
  const status = form.querySelector('#fm');
  let error = '';
  if(name.length<2)error='Please enter your name.';
@@ -655,8 +656,17 @@ function validateEnquiry(event){
  else if(message.length<10)error='Please add a few details about your project.';
  status.textContent=error;
  status.className=error?'bad':'';
- if(error)event.preventDefault();
- return !error;
+ if(error){
+  event.preventDefault();
+  return false;
+ }
+ const service=fields.namedItem('Service needed').value;
+ const clean=value=>value.replace(/\s+/g,' ').trim().slice(0,40);
+ const selected=S.find(([label])=>label===service);
+ const reference='SAL-'+Date.now().toString(36).toUpperCase()+'-'+crypto.randomUUID().slice(0,6).toUpperCase();
+ fields.namedItem('Enquiry reference').value=reference;
+ fields.namedItem('_subject').value=[clean(name), ...(selected?[clean(selected[0])]:[]), reference].join(' | ');
+ return true;
 }
 let stopWorkCarousel;
 function setupWorkCarousel(){
